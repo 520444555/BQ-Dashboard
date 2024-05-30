@@ -1,0 +1,37 @@
+SELECT 
+      project_id,
+      user_email,
+      SPLIT(user_email, '@')[OFFSET(0)] AS Name,
+      job_id,
+      destination_table.dataset_id AS destination_table_dataset_id,
+      destination_table.table_id AS destination_table_id,
+      FORMAT_TIMESTAMP('%Y-%m-%d %H:%M:%E6S %Z', end_time, 'PST8PDT') AS Date_Time,
+      job_type,
+      statement_type,
+      priority,
+      query,
+      state,
+      total_bytes_processed,
+      total_bytes_billed,
+      SUM(total_bytes_processed /1024/1024/1024/1024) AS Processed_TB,
+      SUM(total_bytes_billed /1024/1024/1024/1024) AS Billed_TB,
+      SUM((total_bytes_billed /1024/1024/1024/1024) *5.86) AS Cost
+ 
+WHERE 
+    job_type IN ('QUERY',"LOAD","EXTRACT","COPY")
+    AND (statement_type != "SCRIPT" OR statement_type IS NULL)
+    AND error_result IS NULL
+    AND creation_time BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 60 DAY) AND CURRENT_TIMESTAMP()
+GROUP BY project_id,
+         user_email,
+         job_id,
+         destination_table.dataset_id,
+         destination_table.table_id,
+         end_time,
+         job_type,
+         statement_type,
+         priority,
+         query,
+         state,
+         total_bytes_processed,
+         total_bytes_billed
