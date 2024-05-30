@@ -1,0 +1,38 @@
+SELECT 
+      project_id,
+      user_email,
+      SPLIT(user_email, '@')[OFFSET(0)] AS Name,
+      job_id,
+      destination_table.dataset_id AS destination_table_dataset_id,
+      destination_table.table_id AS destination_table_id,
+      EXTRACT(date FROM end_time AT TIME ZONE 'PST8PDT') AS Date_Time,
+      job_type,
+      statement_type,
+      priority,
+      query,
+      state,
+      total_bytes_processed,
+      total_bytes_billed,
+      SUM(total_bytes_processed /1024/1024/1024/1024) AS Processed_TB,
+      SUM(total_bytes_billed /1024/1024/1024/1024) AS Billed_TB,
+      SUM((total_bytes_billed /1024/1024/1024/1024) *5.86) AS Cost
+ 
+FROM hsbc-10534429-fdreu-prod.`region-europe-west2`.INFORMATION_SCHEMA.JOBS
+WHERE 
+    job_type IN ('QUERY',"LOAD","EXTRACT","COPY")
+    AND statement_type != 'SCRIPT' 
+    AND error_result IS NULL
+    AND creation_time BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 60 DAY) AND CURRENT_TIMESTAMP()
+GROUP BY project_id,
+         user_email,
+         job_id,
+         destination_table.dataset_id,
+         destination_table.table_id,
+         Date_Time,
+         job_type,
+         statement_type,
+         priority,
+         query,
+         state,
+         total_bytes_processed,
+         total_bytes_billed
