@@ -1,0 +1,20 @@
+SELECT
+  USAGE_DATE,
+  PROJECT_ID,
+  TABLE_SCHEMA,
+  TABLE_NAME,
+  SUM(billable_total_logical_usage) AS billable_total_logical_usage,
+  SUM(billable_active_logical_usage) AS billable_active_logical_usage,
+  SUM(billable_long_term_logical_usage) AS billable_long_term_logical_usage,
+  SUM(billable_total_physical_usage) AS billable_total_physical_usage,
+  SUM(billable_active_physical_usage) AS billable_active_physical_usage,
+  SUM(billable_long_term_physical_usage) AS billable_long_term_physical_usage
+FROM
+  hsbc-10534429-fdreu-prod.`region-europe-west2`.INFORMATION_SCHEMA.TABLE_STORAGE_USAGE_TIMELINE
+GROUP BY
+  1,
+  2,
+  3,
+  4
+ORDER BY
+  usage_date;
